@@ -42,5 +42,10 @@ async def main() -> None:
     )
     print(result)
 
+    result = await graph.ainvoke(
+        {"order_id": "A101", "is_valid": False, "total": 0}
+    )
+    print(result)
+
 
 asyncio.run(main())
