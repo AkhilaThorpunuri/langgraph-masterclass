@@ -1,0 +1,15 @@
+python-dotenv
+psycopg2-binary
+boto3
+elasticsearch
+pypdf
+beautifulsoup4
+requests
+mcp
+langgraph
+langchain
+openai
+anthropic
+google-genai
+pandas
+mlflow

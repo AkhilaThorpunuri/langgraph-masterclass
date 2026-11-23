@@ -353,6 +353,15 @@ python to-review/ml-automation-genai-agents-agenticloop/scripts/run_data_loader.
 python to-review/ml-automation-genai-agents-agenticloop/scripts/run_ml_demo.py
 ```
 
+#### LangGraph MCP Question-Answering Tutorial (`tutorials/`)
+Imported as-is from `AkhilaThorpunuri/langgraph-tutorial` (no script changes). Uses its own built-in MLflow experiment **`Tinitiate-MCP-PostgreSQL-MinIO-QA`** (defaults to `sqlite:///tutorials/mlflow.db`, or set `MLFLOW_TRACKING_URI=http://localhost:5000/` to send traces to your running local MLflow server):
+```powershell
+cd tutorials
+python ask_langgraph.py
+# View its local SQLite traces:
+python -m mlflow ui --backend-store-uri sqlite:///mlflow.db --port 5000
+```
+
 ### 3. How to View Traces
 1. Go to **`http://localhost:5000/`**.
 2. Click **`masterclass`** in the left sidebar under **Experiments**.
