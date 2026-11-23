@@ -9,19 +9,30 @@ import argparse
 import sys
 from pathlib import Path
 
+import mlflow
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from src.automation_router.watcher import scan_once, watch_loop
 
 
+@mlflow.trace(name="run_automation_router")
+def _run_once():
+    return scan_once()
+
+
 def main():
+    mlflow.set_tracking_uri("http://localhost:5000/")
+    mlflow.set_experiment("masterclass")
+    mlflow.langchain.autolog()
+
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--once", action="store_true", help="Scan once and exit")
     parser.add_argument("--poll-interval", type=int, default=5)
     args = parser.parse_args()
 
     if args.once:
-        results = scan_once()
+        results = _run_once()
         if not results:
             print("No new files to route.")
         for result in results:

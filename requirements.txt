@@ -50,6 +50,7 @@ websockets>=13.0
 # --- Testing, Debugging and Observability -------------------------------------
 pytest>=8.3.0
 langsmith>=0.1.147
+mlflow>=3.0.0
 
 # --- Deployment ----------------------------------------------------------------
 langgraph-cli[inmem]>=0.1.75

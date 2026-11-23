@@ -8,6 +8,7 @@ import shutil
 from pathlib import Path
 from typing import TypedDict
 
+import mlflow
 from langgraph.graph import END, StateGraph
 
 from src.automation_router.classifier import classify_file
@@ -68,6 +69,9 @@ def log_result(state: RouterState) -> RouterState:
 
 
 def build_graph():
+    mlflow.set_tracking_uri("http://localhost:5000/")
+    mlflow.set_experiment("masterclass")
+    mlflow.langchain.autolog()
     graph = StateGraph(RouterState)
     graph.add_node("inspect_file", inspect_file)
     graph.add_node("classify", classify)

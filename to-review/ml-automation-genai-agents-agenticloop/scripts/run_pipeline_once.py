@@ -11,6 +11,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+import mlflow
+
 from src.automation_router.watcher import scan_once
 from src.data_loader.graph import run as run_loader
 from src.genai_datagen.graph import run as run_datagen
@@ -18,7 +20,8 @@ from src.ml_insights.graph import run as run_ml_demo
 from src.schema_evolution.graph import run as run_schema_check
 
 
-def main():
+@mlflow.trace(name="run_pipeline_once")
+def _run_pipeline():
     evolution_result = run_schema_check()
 
     if evolution_result["regenerated"] or evolution_result["archived"]:
@@ -40,6 +43,14 @@ def main():
     print("ML report written to:")
     for kind, path in ml_result["report_paths"].items():
         print(f" - {kind}: {path}")
+
+
+def main():
+    mlflow.set_tracking_uri("http://localhost:5000/")
+    mlflow.set_experiment("masterclass")
+    mlflow.langchain.autolog()
+    mlflow.sklearn.autolog()
+    _run_pipeline()
 
 
 if __name__ == "__main__":

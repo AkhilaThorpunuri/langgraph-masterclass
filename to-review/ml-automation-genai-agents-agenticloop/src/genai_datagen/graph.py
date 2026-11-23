@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from typing import TypedDict
 
+import mlflow
 import pandas as pd
 from langgraph.graph import END, StateGraph
 
@@ -80,6 +81,9 @@ def write_outputs(state: DataGenState) -> DataGenState:
 
 
 def build_graph():
+    mlflow.set_tracking_uri("http://localhost:5000/")
+    mlflow.set_experiment("masterclass")
+    mlflow.langchain.autolog()
     graph = StateGraph(DataGenState)
     graph.add_node("load_schema", load_schema)
     graph.add_node("generate_core_tables", generate_core_tables)

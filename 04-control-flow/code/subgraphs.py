@@ -1,7 +1,12 @@
 """Nesting a compiled graph as a node: shared state vs. an isolated schema."""
 from typing import TypedDict
 
+import mlflow
 from langgraph.graph import StateGraph, START, END
+
+mlflow.set_tracking_uri("http://localhost:5000/")
+mlflow.set_experiment("masterclass")
+mlflow.langchain.autolog()
 
 
 # --- Child graph #1: SHARED state -- "number" and "doubled" are the exact

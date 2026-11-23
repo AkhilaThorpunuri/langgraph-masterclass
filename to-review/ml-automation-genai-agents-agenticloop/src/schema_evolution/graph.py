@@ -13,6 +13,7 @@ from __future__ import annotations
 
 from typing import TypedDict
 
+import mlflow
 from langgraph.graph import END, StateGraph
 
 from src.automation_router.watcher import scan_once
@@ -102,6 +103,9 @@ def save_state(state: SchemaEvolutionState) -> SchemaEvolutionState:
 
 
 def build_graph():
+    mlflow.set_tracking_uri("http://localhost:5000/")
+    mlflow.set_experiment("masterclass")
+    mlflow.langchain.autolog()
     graph = StateGraph(SchemaEvolutionState)
     graph.add_node("read_registry", read_registry)
     graph.add_node("load_previous_state", load_previous_state)

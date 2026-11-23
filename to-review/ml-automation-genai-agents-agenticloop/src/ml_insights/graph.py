@@ -8,6 +8,7 @@ import json
 from typing import TypedDict
 
 import joblib
+import mlflow
 from langgraph.graph import END, StateGraph
 
 from src.common import paths
@@ -76,6 +77,10 @@ def write_report(state: MLState) -> MLState:
 
 
 def build_graph():
+    mlflow.set_tracking_uri("http://localhost:5000/")
+    mlflow.set_experiment("masterclass")
+    mlflow.langchain.autolog()
+    mlflow.sklearn.autolog()
     graph = StateGraph(MLState)
     graph.add_node("load_joined_data", load_joined_data)
     graph.add_node("engineer_features", engineer_features)
@@ -94,4 +99,5 @@ def build_graph():
 
 def run() -> MLState:
     app = build_graph()
-    return app.invoke({})
+    with mlflow.start_run(run_name="ml_insights_reorder_risk"):
+        return app.invoke({})

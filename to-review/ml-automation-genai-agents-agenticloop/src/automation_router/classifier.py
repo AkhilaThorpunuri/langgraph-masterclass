@@ -7,6 +7,9 @@ from __future__ import annotations
 import json
 import re
 
+import mlflow
+from mlflow.entities import SpanType
+
 from src.common.llm_clients import LLMUnavailableError, chat
 
 # Files written by our own genai_datagen pipeline are named
@@ -29,6 +32,7 @@ _KNOWN_HINTS = {
 }
 
 
+@mlflow.trace(name="heuristic_classify", span_type=SpanType.TOOL)
 def _heuristic_classify(filename: str, known_targets: list) -> dict:
     name = filename.lower()
     for target, hints in _KNOWN_HINTS.items():
@@ -49,6 +53,7 @@ def _heuristic_classify(filename: str, known_targets: list) -> dict:
     }
 
 
+@mlflow.trace(name="classify_file", span_type=SpanType.CHAIN)
 def classify_file(filename: str, header_preview: str, known_targets: list) -> dict:
     generator_match = _GENERATOR_FILENAME_RE.match(filename)
     if generator_match:

@@ -2,8 +2,13 @@
 import operator
 from typing import Annotated, TypedDict
 
+import mlflow
 from langgraph.graph import StateGraph, START, END
 from langgraph.types import Send
+
+mlflow.set_tracking_uri("http://localhost:5000/")
+mlflow.set_experiment("masterclass")
+mlflow.langchain.autolog()
 
 
 class MapReduceState(TypedDict):

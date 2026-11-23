@@ -9,6 +9,8 @@ import os
 import re
 from pathlib import Path
 
+import mlflow
+from mlflow.entities import SpanType
 import requests
 
 from src.common import paths
@@ -54,6 +56,7 @@ OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL", "meta-llama/llama-3.3-70b-
 _REQUEST_TIMEOUT = 30
 
 
+@mlflow.trace(name="ollama_cloud_chat", span_type=SpanType.LLM)
 def _chat_ollama_cloud(system: str, user: str) -> str:
     if not OLLAMA_API_KEY:
         raise LLMUnavailableError("OLLAMA_API_KEY not configured")
@@ -93,12 +96,14 @@ def _chat_openai_compatible(url: str, api_key, model: str, system: str, user: st
     return response.json()["choices"][0]["message"]["content"]
 
 
+@mlflow.trace(name="groq_chat", span_type=SpanType.LLM)
 def _chat_groq(system: str, user: str) -> str:
     return _chat_openai_compatible(
         "https://api.groq.com/openai/v1/chat/completions", GROQ_API_KEY, GROQ_MODEL, system, user
     )
 
 
+@mlflow.trace(name="openrouter_chat", span_type=SpanType.LLM)
 def _chat_openrouter(system: str, user: str) -> str:
     return _chat_openai_compatible(
         "https://openrouter.ai/api/v1/chat/completions", OPENROUTER_API_KEY, OPENROUTER_MODEL, system, user
@@ -112,6 +117,7 @@ _PROVIDER_CHAIN = [
 ]
 
 
+@mlflow.trace(name="llm_fallback_chain", span_type=SpanType.LLM)
 def chat(user: str, system: str = "You are a helpful assistant."):
     """Try each provider in order. Returns (content, provider_name)."""
     errors = []

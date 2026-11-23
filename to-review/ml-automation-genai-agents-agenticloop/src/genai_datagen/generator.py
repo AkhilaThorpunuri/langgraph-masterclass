@@ -14,6 +14,8 @@ import random
 from datetime import datetime, timedelta
 
 from faker import Faker
+import mlflow
+from mlflow.entities import SpanType
 
 from src.common import paths
 from src.common.llm_clients import LLMUnavailableError, chat
@@ -40,6 +42,7 @@ def _extract_json(text: str) -> str:
     return text[start : end + 1]
 
 
+@mlflow.trace(name="load_reference_lists", span_type=SpanType.RETRIEVER)
 def _load_reference_lists(refresh: bool = False) -> dict:
     if not refresh and _REFERENCE_CACHE_PATH.exists():
         return json.loads(_REFERENCE_CACHE_PATH.read_text(encoding="utf-8"))

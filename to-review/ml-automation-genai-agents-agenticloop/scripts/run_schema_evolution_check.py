@@ -6,13 +6,24 @@ run of this script is a complete, self-contained pass of the agentic loop.
 import sys
 from pathlib import Path
 
+import mlflow
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from src.schema_evolution.graph import run
 
 
+@mlflow.trace(name="run_schema_evolution_check")
+def _run_schema_check():
+    return run()
+
+
 def main():
-    result = run()
+    mlflow.set_tracking_uri("http://localhost:5000/")
+    mlflow.set_experiment("masterclass")
+    mlflow.langchain.autolog()
+
+    result = _run_schema_check()
     if result["regenerated"]:
         print("Schema evolution detected -- regenerated data:", result["changes"])
     elif result["archived"]:

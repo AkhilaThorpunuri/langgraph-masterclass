@@ -20,7 +20,12 @@ What this code does:
 """
 from typing import Literal, TypedDict
 
+import mlflow
 from langgraph.graph import StateGraph, START, END
+
+mlflow.set_tracking_uri("http://localhost:5000/")
+mlflow.set_experiment("masterclass")
+mlflow.langchain.autolog()
 
 
 # STEP 1 -- STATE: the shared object every node reads from and writes to.

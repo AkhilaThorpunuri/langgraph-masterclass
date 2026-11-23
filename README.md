@@ -315,6 +315,63 @@ Green = Beginner &nbsp;|&nbsp; Blue = Intermediate &nbsp;|&nbsp; Orange = Advanc
 * Web search tool integration
 * Final report synthesis
 
+---
+
+## MLflow Tracing (Observability)
+
+Selected LangGraph demos and the full agentic pipeline project are instrumented with **self-contained MLflow tracing** (no shared tracing wrapper file — each script configures MLflow directly) logging to `http://localhost:5000/` under the **`masterclass`** experiment.
+
+### 1. Start the MLflow Server
+In a terminal, start the local MLflow tracking UI:
+```powershell
+mlflow ui --host 127.0.0.1 --port 5000
+```
+Open **`http://localhost:5000/`** in your browser. The **`masterclass`** experiment is created automatically the first time you run any traced script.
+
+### 2. Run Any Traced Script
+
+#### Control-Flow & Conditional-Edge Demos (run from repo root)
+```powershell
+python 02-langgraph-core-concepts/code/conditional_edges.py
+python 04-control-flow/code/branching.py
+python 04-control-flow/code/looping.py
+python 04-control-flow/code/parallel_execution.py
+python 04-control-flow/code/map_reduce_with_send.py
+python 04-control-flow/code/subgraphs.py
+```
+
+#### Agentic Pipeline Project (`to-review/ml-automation-genai-agents-agenticloop/`)
+```powershell
+# Full end-to-end pipeline under one root trace
+python to-review/ml-automation-genai-agents-agenticloop/scripts/run_pipeline_once.py
+
+# Or run any stage individually (each records its own named root trace)
+python to-review/ml-automation-genai-agents-agenticloop/scripts/run_schema_evolution_check.py
+python to-review/ml-automation-genai-agents-agenticloop/scripts/run_genai_datagen.py --count 60
+python to-review/ml-automation-genai-agents-agenticloop/scripts/run_automation_router.py --once
+python to-review/ml-automation-genai-agents-agenticloop/scripts/run_data_loader.py
+python to-review/ml-automation-genai-agents-agenticloop/scripts/run_ml_demo.py
+```
+
+### 3. How to View Traces
+1. Go to **`http://localhost:5000/`**.
+2. Click **`masterclass`** in the left sidebar under **Experiments**.
+3. Open the **Traces** tab to see every graph execution listed by timestamp, root span name, duration, and status.
+4. Click any trace row to open its **Span Tree** and **Timeline** view.
+5. For `run_ml_demo.py` (or `run_pipeline_once.py`), also check the **Runs** tab to see scikit-learn parameters, metrics, and the logged model artifact under `ml_insights_reorder_risk`.
+
+### 4. What Is Inside a Trace & How to Understand It
+Each trace breaks a program run into a hierarchy of **spans** (individual steps):
+
+| What you see in MLflow | What it means |
+|---|---|
+| **Root Span** (`LangGraph`, `run_pipeline_once`, `run_automation_router`, etc.) | The entry point of the script or graph invocation, showing the initial input and final output. |
+| **Node Spans** (e.g. `check_score`, `route_by_score`, `fetch_weather`, `summarize`) | Each LangGraph node or routing function that actually executed. Unvisited branches do not appear. |
+| **Span Type Badges** (`CHAIN`, `LLM`, `RETRIEVER`, `TOOL`) | Classifies what the step did: graph/chain orchestration (`CHAIN`), model prompt/response (`LLM`), cached/external reference lookup (`RETRIEVER`), or fallback logic (`TOOL`). |
+| **Inputs / Outputs Panel** | Click any span to inspect the exact state dictionary going **into** that node and the partial update dict it returned **out** (before LangGraph merged it into state). |
+| **Timeline / Duration Bars** | Shows sequential vs. parallel execution. In `parallel_execution.py`, `map_reduce_with_send.py`, and `subgraphs.py`, sibling spans overlap in time (same LangGraph superstep) before the fan-in node starts. |
+| **Status (`OK` vs. `ERROR`)** | Highlights failures directly on the failing span—for example, `GraphRecursionError` in `looping.py`, or a failed provider attempt (`ollama_cloud_chat` → `groq_chat` → `openrouter_chat`) inside `llm_fallback_chain`. |
+
 
 ---
 © Venkata Bhattaram

@@ -2,7 +2,12 @@
 import operator
 from typing import Annotated, TypedDict
 
+import mlflow
 from langgraph.graph import StateGraph, START, END
+
+mlflow.set_tracking_uri("http://localhost:5000/")
+mlflow.set_experiment("masterclass")
+mlflow.langchain.autolog()
 
 
 class ResearchState(TypedDict):

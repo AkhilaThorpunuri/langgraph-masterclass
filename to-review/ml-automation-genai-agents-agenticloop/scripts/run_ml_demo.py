@@ -5,13 +5,25 @@ run_pipeline_once.py) first so a joined dataset exists.
 import sys
 from pathlib import Path
 
+import mlflow
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from src.ml_insights.graph import run
 
 
+@mlflow.trace(name="run_ml_demo")
+def _run_ml():
+    return run()
+
+
 def main():
-    result = run()
+    mlflow.set_tracking_uri("http://localhost:5000/")
+    mlflow.set_experiment("masterclass")
+    mlflow.langchain.autolog()
+    mlflow.sklearn.autolog()
+
+    result = _run_ml()
     print("Report written to:")
     for kind, path in result["report_paths"].items():
         print(f" - {kind}: {path}")

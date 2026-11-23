@@ -167,3 +167,32 @@ flowchart TD
 .\.venv\Scripts\python scripts\run_ml_demo.py
 ```
 Check the printed accuracy — it should sit meaningfully above the ~50% no-signal baseline because of the injected per-category risk bias (a `--count 300` run typically lands around 80–90% accuracy). Inspect `target-data/ml/<ts>_metrics.json` for the full classification report + confusion matrix, and `<ts>_predictions.csv` for individual test-set predictions vs actuals.
+
+---
+
+## MLflow Tracing & Experiment Tracking
+
+Every CLI script and LangGraph module in this project has its own self-contained MLflow setup pointing to **`http://localhost:5000/`** under the **`masterclass`** experiment.
+
+### 1. Start MLflow UI
+```powershell
+mlflow ui --host 127.0.0.1 --port 5000
+```
+Open **`http://localhost:5000/`** → Experiments → **`masterclass`**.
+
+### 2. Run Scripts & What Traces They Record
+
+| Script | Root Trace Name | Key Child Spans to Inspect |
+|---|---|---|
+| `python scripts/run_pipeline_once.py` | `run_pipeline_once` | Full end-to-end tree linking schema check, datagen, router, loader, and ML training. |
+| `python scripts/run_schema_evolution_check.py` | `run_schema_evolution_check` | `read_registry` → `detect_diff` → `maybe_regenerate` / `rollback_archive` → `load_handler` (nested router + loader graphs) → `save_state`. |
+| `python scripts/run_genai_datagen.py --count 60` | `run_genai_datagen` | `load_schema` → `generate_core_tables` → `load_reference_lists` (`RETRIEVER`, shows cache hit vs. live LLM) → `generate_evolved_tables` → `write_outputs`. |
+| `python scripts/run_automation_router.py --once` | `run_automation_router` | Per-file `inspect_file` → `classify` → `classify_file` → `llm_fallback_chain` (`LLM`) or `heuristic_classify` (`TOOL`) → `move_file` → `log_result`. |
+| `python scripts/run_data_loader.py` | `run_data_loader` | `discover` → `load` → `join` → `write_output`. |
+| `python scripts/run_ml_demo.py` | `run_ml_demo` | Graph spans under **Traces**, plus scikit-learn metrics, params, and model under **Runs** (`ml_insights_reorder_risk`). |
+
+### 3. How to Read the Traces
+* **LLM fallback visibility:** Expand `llm_fallback_chain` (`LLM`) to see each provider attempt (`ollama_cloud_chat` → `groq_chat` → `openrouter_chat`), which one failed (red `ERROR` badge with exception details), and which one returned the final response.
+* **Routing decisions:** Expand `classify_file` to see whether a file took the regex fast-path (`confidence: 1.0`), called the LLM, or fell back to `heuristic_classify`.
+* **Nested agentic loop:** In `run_schema_evolution_check.py`, click `maybe_regenerate` or `load_handler` to see nested LangGraph runs (`genai_datagen`, `automation_router`, `data_loader`) indented directly beneath the triggering node.
+* **Node state inspection:** Click any node span to view the exact state entering the node (**Inputs**) and the state keys updated by that node (**Outputs**), along with execution time on the timeline bar.

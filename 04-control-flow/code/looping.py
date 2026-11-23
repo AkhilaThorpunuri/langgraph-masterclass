@@ -1,8 +1,13 @@
 """A cycle in a graph, a loop termination condition, and the recursion limit."""
 from typing import TypedDict
 
+import mlflow
 from langgraph.graph import StateGraph, START, END
 from langgraph.errors import GraphRecursionError
+
+mlflow.set_tracking_uri("http://localhost:5000/")
+mlflow.set_experiment("masterclass")
+mlflow.langchain.autolog()
 
 
 class CounterState(TypedDict):
