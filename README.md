@@ -136,19 +136,19 @@ Green = Beginner &nbsp;|&nbsp; Blue = Intermediate &nbsp;|&nbsp; Orange = Advanc
 ---
 
 ### Persistence and Memory
-#### [Checkpointers](./persistence-and-memory/checkpointers/checkpointers.md)
+#### [Checkpointers](./05-persistence-and-memory/md/checkpointers.md)
 * What a checkpointer does
 * In-memory checkpointer
 * Threads and checkpoint IDs
-#### [SQLite and Postgres Checkpointers](./persistence-and-memory/sqlite-and-postgres-checkpointers/sqlite_and_postgres_checkpointers.md)
+#### [SQLite and Postgres Checkpointers](./05-persistence-and-memory/md/sqlite_and_postgres_checkpointers.md)
 * SqliteSaver
 * PostgresSaver
 * Choosing a backend for production
-#### [Time Travel and Replay](./persistence-and-memory/time-travel-and-replay/time_travel_and_replay.md)
+#### [Time Travel and Replay](./05-persistence-and-memory/md/time_travel_and_replay.md)
 * Viewing checkpoint history
 * Replaying from a past state
 * Forking a run
-#### [Long-Term Memory (Store)](./persistence-and-memory/long-term-memory/long_term_memory.md)
+#### [Long-Term Memory (Store)](./05-persistence-and-memory/md/long_term_memory.md)
 * BaseStore vs checkpointer
 * Cross-thread memory
 * Semantic search over memories
@@ -156,15 +156,15 @@ Green = Beginner &nbsp;|&nbsp; Blue = Intermediate &nbsp;|&nbsp; Orange = Advanc
 ---
 
 ### Human in the Loop
-#### [Interrupts](./human-in-the-loop/interrupts/interrupts.md)
+#### [Interrupts](./06-human-in-the-loop/md/interrupts.md)
 * Static breakpoints
 * interrupt_before / interrupt_after
 * Dynamic interrupt()
-#### [Approving and Editing State](./human-in-the-loop/approving-and-editing-state/approving_and_editing_state.md)
+#### [Approving and Editing State](./06-human-in-the-loop/md/approving_and_editing_state.md)
 * Pausing for review
 * Updating state before resuming
 * Resuming with Command
-#### [Reviewing Tool Calls](./human-in-the-loop/reviewing-tool-calls/reviewing_tool_calls.md)
+#### [Reviewing Tool Calls](./06-human-in-the-loop/md/reviewing_tool_calls.md)
 * Human approval before tool execution
 * Editing tool arguments
 * Rejecting a tool call
@@ -172,23 +172,23 @@ Green = Beginner &nbsp;|&nbsp; Blue = Intermediate &nbsp;|&nbsp; Orange = Advanc
 ---
 
 ### Tools and Agents
-#### [Tool Calling Basics](./tools-and-agents/tool-calling-basics/tool_calling_basics.md)
+#### [Tool Calling Basics](./07-tools-and-agents/md/tool_calling_basics.md)
 * Defining tools with @tool
 * Binding tools to a model
 * ToolMessage
-#### [The ToolNode](./tools-and-agents/the-toolnode/the_toolnode.md)
+#### [The ToolNode](./07-tools-and-agents/md/the_toolnode.md)
 * Prebuilt ToolNode
 * Routing with tools_condition
 * Error handling in tools
-#### [The Prebuilt ReAct Agent](./tools-and-agents/the-prebuilt-react-agent/the_prebuilt_react_agent.md)
+#### [The Prebuilt ReAct Agent](./07-tools-and-agents/md/the_prebuilt_react_agent.md)
 * create_react_agent
 * Customizing prompts
 * When to use the prebuilt agent vs a custom one
-#### [Building a Custom Agent Loop](./tools-and-agents/building-a-custom-agent-loop/building_a_custom_agent_loop.md)
+#### [Building a Custom Agent Loop](./07-tools-and-agents/md/building_a_custom_agent_loop.md)
 * Agent node + tool node + conditional edge
 * Adding memory
 * Adding guardrails
-#### [Structured Output](./tools-and-agents/structured-output/structured_output.md)
+#### [Structured Output](./07-tools-and-agents/md/structured_output.md)
 * with_structured_output
 * Pydantic response models
 * Validating and retrying
@@ -196,18 +196,18 @@ Green = Beginner &nbsp;|&nbsp; Blue = Intermediate &nbsp;|&nbsp; Orange = Advanc
 ---
 
 ### Multi-Agent Systems
-#### [Multi-Agent Architectures Overview](./multi-agent-systems/multi-agent-architectures-overview/multi_agent_architectures_overview.md)
+#### [Multi-Agent Architectures Overview](./08-multi-agent-systems/md/multi_agent_architectures_overview.md)
 * Single agent vs multi-agent
 * Network, supervisor, and hierarchical patterns
-#### [Supervisor Pattern](./multi-agent-systems/supervisor-pattern/supervisor_pattern.md)
+#### [Supervisor Pattern](./08-multi-agent-systems/md/supervisor_pattern.md)
 * Supervisor node routing
 * Worker agents as nodes
 * Aggregating worker output
-#### [Hierarchical Agent Teams](./multi-agent-systems/hierarchical-agent-teams/hierarchical_agent_teams.md)
+#### [Hierarchical Agent Teams](./08-multi-agent-systems/md/hierarchical_agent_teams.md)
 * Teams as subgraphs
 * Nested supervisors
 * Scaling to many agents
-#### [Agent Handoffs with Command](./multi-agent-systems/agent-handoffs-with-command/agent_handoffs_with_command.md)
+#### [Agent Handoffs with Command](./08-multi-agent-systems/md/agent_handoffs_with_command.md)
 * Command(goto=...)
 * Passing state between agents
 * Handoff tools
@@ -215,14 +215,14 @@ Green = Beginner &nbsp;|&nbsp; Blue = Intermediate &nbsp;|&nbsp; Orange = Advanc
 ---
 
 ### Streaming
-#### [Streaming Graph State](./streaming/streaming-graph-state/streaming_graph_state.md)
+#### [Streaming Graph State](./09-streaming/md/streaming_graph_state.md)
 * stream() vs invoke()
 * Stream modes: values, updates, debug
-#### [Streaming LLM Tokens](./streaming/streaming-llm-tokens/streaming_llm_tokens.md)
+#### [Streaming LLM Tokens](./09-streaming/md/streaming_llm_tokens.md)
 * astream_events
 * Token-by-token output
 * Filtering events by node
-#### [Streaming to a Frontend](./streaming/streaming-to-a-frontend/streaming_to_a_frontend.md)
+#### [Streaming to a Frontend](./09-streaming/md/streaming_to_a_frontend.md)
 * Server-sent events
 * WebSockets
 * Integrating with a UI
@@ -230,15 +230,15 @@ Green = Beginner &nbsp;|&nbsp; Blue = Intermediate &nbsp;|&nbsp; Orange = Advanc
 ---
 
 ### Retrieval Augmented Generation with LangGraph
-#### [Basic RAG Graph](./retrieval-augmented-generation/basic-rag-graph/basic_rag_graph.md)
+#### [Basic RAG Graph](./10-retrieval-augmented-generation/md/basic_rag_graph.md)
 * Retrieve node
 * Generate node
 * Wiring a vector store into a graph
-#### [Corrective and Self-RAG](./retrieval-augmented-generation/corrective-and-self-rag/corrective_and_self_rag.md)
+#### [Corrective and Self-RAG](./10-retrieval-augmented-generation/md/corrective_and_self_rag.md)
 * Grading retrieved documents
 * Query rewriting
 * Self-correction loops
-#### [Adaptive RAG](./retrieval-augmented-generation/adaptive-rag/adaptive_rag.md)
+#### [Adaptive RAG](./10-retrieval-augmented-generation/md/adaptive_rag.md)
 * Routing between retrieval strategies
 * Falling back to web search
 * Combining sources
@@ -246,15 +246,15 @@ Green = Beginner &nbsp;|&nbsp; Blue = Intermediate &nbsp;|&nbsp; Orange = Advanc
 ---
 
 ### Testing, Debugging and Observability
-#### [LangGraph Studio](./testing-debugging-and-observability/langgraph-studio/langgraph_studio.md)
+#### [LangGraph Studio](./11-testing-debugging-and-observability/md/langgraph_studio.md)
 * Visualizing graph runs
 * Stepping through execution
 * Editing state mid-run
-#### [LangSmith Tracing](./testing-debugging-and-observability/langsmith-tracing/langsmith_tracing.md)
+#### [LangSmith Tracing](./11-testing-debugging-and-observability/md/langsmith_tracing.md)
 * Enabling tracing
 * Inspecting runs and traces
 * Evaluations and datasets
-#### [Unit Testing Nodes and Graphs](./testing-debugging-and-observability/unit-testing-nodes-and-graphs/unit_testing_nodes_and_graphs.md)
+#### [Unit Testing Nodes and Graphs](./11-testing-debugging-and-observability/md/unit_testing_nodes_and_graphs.md)
 * Testing nodes in isolation
 * Mocking LLM calls
 * Testing full graph runs
@@ -262,15 +262,15 @@ Green = Beginner &nbsp;|&nbsp; Blue = Intermediate &nbsp;|&nbsp; Orange = Advanc
 ---
 
 ### Deployment
-#### [LangGraph Platform and Server](./deployment/langgraph-platform-and-server/langgraph_platform_and_server.md)
+#### [LangGraph Platform and Server](./12-deployment/md/langgraph_platform_and_server.md)
 * langgraph.json config
 * Local dev server
 * Deploying to LangGraph Platform
-#### [Dockerizing a Graph](./deployment/dockerizing-a-graph/dockerizing_a_graph.md)
+#### [Dockerizing a Graph](./12-deployment/md/dockerizing_a_graph.md)
 * Dockerfile for a LangGraph app
 * Environment variables and secrets
 * docker-compose for local testing
-#### [Scaling and Production Configuration](./deployment/scaling-and-production-configuration/scaling_and_production_configuration.md)
+#### [Scaling and Production Configuration](./12-deployment/md/scaling_and_production_configuration.md)
 * Choosing a production checkpointer
 * Concurrency and worker configuration
 * Monitoring and alerting
@@ -278,23 +278,23 @@ Green = Beginner &nbsp;|&nbsp; Blue = Intermediate &nbsp;|&nbsp; Orange = Advanc
 ---
 
 ### Advanced Topics
-#### [Custom Reducers and Channels](./advanced-topics/custom-reducers-and-channels/custom_reducers_and_channels.md)
+#### [Custom Reducers and Channels](./13-advanced-topics/md/custom_reducers_and_channels.md)
 * Writing a custom reducer function
 * Custom channel types
 * Merge strategies
-#### [Retry Policies and Error Handling](./advanced-topics/retry-policies-and-error-handling/retry_policies_and_error_handling.md)
+#### [Retry Policies and Error Handling](./13-advanced-topics/md/retry_policies_and_error_handling.md)
 * RetryPolicy on nodes
 * Catching and routing on exceptions
 * Fallback nodes
-#### [Caching Nodes](./advanced-topics/caching-nodes/caching_nodes.md)
+#### [Caching Nodes](./13-advanced-topics/md/caching_nodes.md)
 * CachePolicy
 * Cache keys and TTLs
 * When caching helps vs hurts
-#### [Graph Visualization](./advanced-topics/graph-visualization/graph_visualization.md)
+#### [Graph Visualization](./13-advanced-topics/md/graph_visualization.md)
 * Mermaid diagrams
 * PNG export
 * Debugging graph topology visually
-#### [Integrating with CrewAI and Other Frameworks](./advanced-topics/integrating-with-crewai-and-other-frameworks/integrating_with_crewai_and_other_frameworks.md)
+#### [Integrating with CrewAI and Other Frameworks](./13-advanced-topics/md/integrating_with_crewai_and_other_frameworks.md)
 * LangGraph as an orchestrator around CrewAI crews
 * Comparing LangGraph, CrewAI, and AutoGen
 * When to combine frameworks
@@ -302,15 +302,15 @@ Green = Beginner &nbsp;|&nbsp; Blue = Intermediate &nbsp;|&nbsp; Orange = Advanc
 ---
 
 ### Real-World Projects
-#### [Customer Support Agent](./real-world-projects/customer-support-agent/customer_support_agent.md)
+#### [Customer Support Agent](./14-real-world-projects/md/customer_support_agent.md)
 * Requirements and design
 * Tools and knowledge base integration
 * Human handoff
-#### [Code Review Agent](./real-world-projects/code-review-agent/code_review_agent.md)
+#### [Code Review Agent](./14-real-world-projects/md/code_review_agent.md)
 * Reading a diff
 * Multi-step review graph
 * Posting comments back
-#### [Multi-Agent Research Assistant](./real-world-projects/multi-agent-research-assistant/multi_agent_research_assistant.md)
+#### [Multi-Agent Research Assistant](./14-real-world-projects/md/multi_agent_research_assistant.md)
 * Planner-researcher-writer team
 * Web search tool integration
 * Final report synthesis

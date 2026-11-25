@@ -1,7 +1,7 @@
 # Basics
 > Venkata Bhattaram (c) 2026
 
-## Contents (Planned)
+## Contents
 * State
 * Graph
 * Node

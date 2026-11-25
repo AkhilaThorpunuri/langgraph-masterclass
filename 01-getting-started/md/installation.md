@@ -1,7 +1,7 @@
 # Installation
 > Venkata Bhattaram (c) 2026
 
-## Contents (Planned)
+## Contents
 * Installing langgraph
 * Installing langchain and provider SDKs
 * Verifying the installation
