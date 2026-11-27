@@ -1,19 +1,33 @@
 """Adaptive RAG -- routing queries between vectorstore, web search, and direct answer.
 
-Demonstrates:
-- Query router selecting the best retrieval strategy at runtime
-- Combining or specializing per-source nodes before generating the final answer
+Objective:
+    Show how a conditional edge from START picks the right retrieval strategy
+    at runtime based on the question, skipping retrieval entirely when unneeded.
 """
+import socket
 from typing import Literal, TypedDict
 
 import mlflow
 from langgraph.graph import END, START, StateGraph
 
-mlflow.set_tracking_uri("http://localhost:5000/")
-mlflow.set_experiment("masterclass")
-mlflow.langchain.autolog()
+
+def _is_port_open(host: str, port: int, timeout: float = 1.0) -> bool:
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except OSError:
+        return False
 
 
+if _is_port_open("127.0.0.1", 5000):
+    mlflow.set_tracking_uri("http://localhost:5000/")
+    mlflow.set_experiment("masterclass")
+    mlflow.langchain.autolog()
+else:
+    print("[MLflow] Server not running at http://localhost:5000/ -- skipping remote tracing.")
+
+
+# STEP 1 -- STATE.
 class AdaptiveRAGState(TypedDict):
     question: str
     strategy: str
@@ -21,6 +35,7 @@ class AdaptiveRAGState(TypedDict):
     answer: str
 
 
+# STEP 2 -- ROUTING FUNCTION (runs directly off START).
 def route_question(state: AdaptiveRAGState) -> Literal["vectorstore", "web_search", "direct_answer"]:
     q = state["question"].lower()
     if any(k in q for k in ("langgraph", "checkpoint", "reducer")):
@@ -30,6 +45,7 @@ def route_question(state: AdaptiveRAGState) -> Literal["vectorstore", "web_searc
     return "direct_answer"
 
 
+# STEP 3 -- STRATEGY & SYNTHESIS NODES.
 def vectorstore_node(state: AdaptiveRAGState) -> dict:
     return {
         "strategy": "vectorstore",
@@ -45,6 +61,7 @@ def web_search_node(state: AdaptiveRAGState) -> dict:
 
 
 def direct_answer_node(state: AdaptiveRAGState) -> dict:
+    # Skips synthesize entirely and goes straight to END.
     return {
         "strategy": "direct_answer",
         "context": "No external retrieval needed.",
@@ -56,6 +73,7 @@ def synthesize(state: AdaptiveRAGState) -> dict:
     return {"answer": f"[{state['strategy']}] {state['context']}"}
 
 
+# STEP 4 -- GRAPH, EDGES & COMPILE.
 builder = StateGraph(AdaptiveRAGState)
 builder.add_node("vectorstore", vectorstore_node)
 builder.add_node("web_search", web_search_node)
@@ -65,11 +83,7 @@ builder.add_node("synthesize", synthesize)
 builder.add_conditional_edges(
     START,
     route_question,
-    {
-        "vectorstore": "vectorstore",
-        "web_search": "web_search",
-        "direct_answer": "direct_answer",
-    },
+    {"vectorstore": "vectorstore", "web_search": "web_search", "direct_answer": "direct_answer"},
 )
 builder.add_edge("vectorstore", "synthesize")
 builder.add_edge("web_search", "synthesize")
@@ -77,10 +91,12 @@ builder.add_edge("synthesize", END)
 builder.add_edge("direct_answer", END)
 graph = builder.compile()
 
+# STEP 5 -- INVOKE THREE QUESTIONS (each takes a different branch):
+print("\n--- Adaptive RAG Routing Demo ---")
 for q in [
     "How does a LangGraph reducer work?",
     "What is the latest news on AI agents today?",
     "Say hello!",
 ]:
     out = graph.invoke({"question": q, "strategy": "", "context": "", "answer": ""})
-    print(f"Q: {q!r} -> {out['answer']}")
+    print(f"  {q!r} -> [{out['strategy']}] {out['answer']}")

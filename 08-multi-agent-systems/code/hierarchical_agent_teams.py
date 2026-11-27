@@ -1,32 +1,47 @@
 """Hierarchical Agent Teams -- nested team subgraphs under a top-level supervisor.
 
-Demonstrates:
-- Two independent team subgraphs (research_team and writing_team)
-- A top-level supervisor orchestrating both teams as compiled subgraph nodes
+Objective:
+    Show how two independent team subgraphs (research_team and writing_team)
+    are compiled separately and added as nodes inside a parent supervisor graph.
 """
 import operator
+import socket
 from typing import Annotated, TypedDict
 
 import mlflow
 from langgraph.graph import END, START, StateGraph
 
-mlflow.set_tracking_uri("http://localhost:5000/")
-mlflow.set_experiment("masterclass")
-mlflow.langchain.autolog()
+
+def _is_port_open(host: str, port: int, timeout: float = 1.0) -> bool:
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except OSError:
+        return False
 
 
+if _is_port_open("127.0.0.1", 5000):
+    mlflow.set_tracking_uri("http://localhost:5000/")
+    mlflow.set_experiment("masterclass")
+    mlflow.langchain.autolog()
+else:
+    print("[MLflow] Server not running at http://localhost:5000/ -- skipping remote tracing.")
+
+
+# STEP 1 -- SHARED STATE: used by both team subgraphs and the top-level supervisor.
 class SharedTeamState(TypedDict):
     topic: str
     artifacts: Annotated[list[str], operator.add]
     stage: str
 
 
-# --- Team 1: Research Subgraph ---
+# STEP 2 -- TEAM 1 SUBGRAPH (research_team: web_searcher -> fact_checker).
 def web_searcher(state: SharedTeamState) -> dict:
     return {"artifacts": [f"[Research/Search] Sources found for {state['topic']}"]}
 
 
 def fact_checker(state: SharedTeamState) -> dict:
+    # Marks stage="researched" so the top supervisor knows to hand off to writing_team.
     return {"artifacts": ["[Research/FactCheck] Verified 3 primary citations"], "stage": "researched"}
 
 
@@ -39,12 +54,13 @@ research_builder.add_edge("fact_checker", END)
 research_team = research_builder.compile()
 
 
-# --- Team 2: Writing Subgraph ---
+# STEP 3 -- TEAM 2 SUBGRAPH (writing_team: drafter -> editor).
 def drafter(state: SharedTeamState) -> dict:
     return {"artifacts": [f"[Writing/Drafter] Drafted article on {state['topic']}"]}
 
 
 def editor(state: SharedTeamState) -> dict:
+    # Marks stage="done" so the top supervisor exits to END.
     return {"artifacts": ["[Writing/Editor] Finalized formatting"], "stage": "done"}
 
 
@@ -57,12 +73,13 @@ writing_builder.add_edge("editor", END)
 writing_team = writing_builder.compile()
 
 
-# --- Top-Level Supervisor ---
+# STEP 4 -- TOP-LEVEL SUPERVISOR GRAPH: adds compiled teams directly as nodes.
 def top_supervisor(state: SharedTeamState) -> dict:
     return {}
 
 
 def route_teams(state: SharedTeamState) -> str:
+    # stage="init" -> research_team | stage="researched" -> writing_team | stage="done" -> END
     stage = state.get("stage", "init")
     if stage == "init":
         return "research_team"
@@ -85,6 +102,9 @@ root.add_edge("research_team", "top_supervisor")
 root.add_edge("writing_team", "top_supervisor")
 graph = root.compile()
 
+# STEP 5 -- INVOKE: runs research_team subgraph, then writing_team subgraph, then END.
+print("\n--- Hierarchical Agent Teams Demo ---")
 out = graph.invoke({"topic": "Hierarchical Multi-Agent Systems", "artifacts": [], "stage": "init"})
-for line in out["artifacts"]:
-    print(line)
+for idx, line in enumerate(out["artifacts"], start=1):
+    print(f"  Step {idx}: {line}")
+print(f"  Final stage: {out['stage']}")

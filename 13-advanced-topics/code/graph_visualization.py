@@ -1,24 +1,39 @@
-"""Graph Visualization -- Mermaid diagram export and ASCII topology inspection.
+"""Graph Visualization -- Mermaid diagram export and topology inspection.
 
-Demonstrates:
-- Inspecting compiled graph topology with graph.get_graph().draw_mermaid()
-- Printing a Mermaid flowchart you can paste directly into Markdown or GitHub
+Objective:
+    Show how graph.get_graph().draw_mermaid() prints a ready-to-paste Mermaid
+    flowchart of any compiled graph so you can visually verify edges & branches.
 """
+import socket
 from typing import TypedDict
 
 import mlflow
 from langgraph.graph import END, START, StateGraph
 
-mlflow.set_tracking_uri("http://localhost:5000/")
-mlflow.set_experiment("masterclass")
-mlflow.langchain.autolog()
+
+def _is_port_open(host: str, port: int, timeout: float = 1.0) -> bool:
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except OSError:
+        return False
 
 
+if _is_port_open("127.0.0.1", 5000):
+    mlflow.set_tracking_uri("http://localhost:5000/")
+    mlflow.set_experiment("masterclass")
+    mlflow.langchain.autolog()
+else:
+    print("[MLflow] Server not running at http://localhost:5000/ -- skipping remote tracing.")
+
+
+# STEP 1 -- STATE.
 class VizState(TypedDict):
     score: int
     status: str
 
 
+# STEP 2 -- NODES & ROUTING FUNCTION.
 def evaluate(state: VizState) -> dict:
     return {}
 
@@ -35,6 +50,7 @@ def route(state: VizState) -> str:
     return "approve" if state["score"] >= 70 else "reject"
 
 
+# STEP 3 -- GRAPH, EDGES & COMPILE.
 builder = StateGraph(VizState)
 builder.add_node("evaluate", evaluate)
 builder.add_node("approve", approve)
@@ -45,8 +61,10 @@ builder.add_edge("approve", END)
 builder.add_edge("reject", END)
 graph = builder.compile()
 
-print("=== Mermaid Diagram ===")
-print(graph.get_graph().draw_mermaid())
+# STEP 4 -- EXPORT MERMAID DIAGRAM & RUN SAMPLE INVOCATION:
+print("\n--- Mermaid Graph Diagram ---")
+print(graph.get_graph().draw_mermaid().strip())
 
-print("=== Sample Run ===")
-print(graph.invoke({"score": 85, "status": ""}))
+out = graph.invoke({"score": 85, "status": ""})
+print("\n--- Sample Run ---")
+print(f"  Score {out['score']} -> {out['status']}")

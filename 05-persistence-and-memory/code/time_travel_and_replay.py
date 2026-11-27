@@ -1,35 +1,54 @@
 """Time Travel and Replay -- inspecting checkpoint history and forking a past run.
 
-Demonstrates:
-- Running a multi-step graph with a checkpointer
-- Listing all historical checkpoints with get_state_history()
-- Updating state at a past checkpoint (update_state) and forking execution from it
+Objective:
+    Show how to walk back to an earlier checkpoint, edit state at that exact
+    point with update_state(), and replay only the downstream nodes from there.
 """
+import socket
 from typing import TypedDict
 
 import mlflow
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
-mlflow.set_tracking_uri("http://localhost:5000/")
-mlflow.set_experiment("masterclass")
-mlflow.langchain.autolog()
+
+def _is_port_open(host: str, port: int, timeout: float = 1.0) -> bool:
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except OSError:
+        return False
 
 
+if _is_port_open("127.0.0.1", 5000):
+    mlflow.set_tracking_uri("http://localhost:5000/")
+    mlflow.set_experiment("masterclass")
+    mlflow.langchain.autolog()
+else:
+    print("[MLflow] Server not running at http://localhost:5000/ -- skipping remote tracing.")
+
+
+# STEP 1 -- STATE: tracks topic -> draft -> polished text across two nodes.
 class PipelineState(TypedDict):
     topic: str
     draft: str
     polished: str
 
 
+# STEP 2 -- NODES.
 def write_draft(state: PipelineState) -> dict:
+    # state coming IN:  {"topic": "LangGraph", "draft": "", "polished": ""}
+    # state going OUT: {"draft": "Initial draft about LangGraph"}
     return {"draft": f"Initial draft about {state['topic']}"}
 
 
 def polish_draft(state: PipelineState) -> dict:
+    # state coming IN:  {"draft": "..."}
+    # state going OUT: {"polished": "[POLISHED] ..."}
     return {"polished": f"[POLISHED] {state['draft']}"}
 
 
+# STEP 3 -- GRAPH, EDGES & COMPILE WITH CHECKPOINTER.
 builder = StateGraph(PipelineState)
 builder.add_node("write_draft", write_draft)
 builder.add_node("polish_draft", polish_draft)
@@ -40,21 +59,27 @@ builder.add_edge("polish_draft", END)
 graph = builder.compile(checkpointer=MemorySaver())
 config = {"configurable": {"thread_id": "time-travel-demo"}}
 
+# STEP 4 -- ORIGINAL RUN: executes both write_draft and polish_draft.
+print("\n--- 1. Original Run ---")
 original = graph.invoke({"topic": "LangGraph", "draft": "", "polished": ""}, config)
-print("Original run:", original)
+print(f"  Draft:    {original['draft']}")
+print(f"  Polished: {original['polished']}")
 
+# STEP 5 -- TIME TRAVEL: locate the checkpoint right before polish_draft ran.
 history = list(graph.get_state_history(config))
-print(f"\nCheckpoint history ({len(history)} snapshots, newest first):")
-for snap in history:
-    print(" ", snap.config["configurable"]["checkpoint_id"], "next=", snap.next, "values=", snap.values)
+print(f"\n--- 2. Saved Checkpoints ({len(history)} total) ---")
+for idx, snap in enumerate(history, start=1):
+    next_step = snap.next[0] if snap.next else "DONE"
+    print(f"  Snapshot {idx} | next: {next_step:<12} | draft: {snap.values.get('draft', '')!r}")
 
-# Pick the checkpoint right after write_draft (where next == ('polish_draft',))
 before_polish = next(s for s in history if s.next == ("polish_draft",))
 
-# Fork from that past checkpoint with an edited draft
+# STEP 6 -- FORK & REPLAY: edit `draft` at that past checkpoint and resume with None.
 fork_config = graph.update_state(
     before_polish.config,
     {"draft": "Forked draft about LangGraph Time Travel"},
 )
 replayed = graph.invoke(None, fork_config)
-print("\nForked & replayed run:", replayed)
+print("\n--- 3. Forked & Replayed Run ---")
+print(f"  Edited Draft: {replayed['draft']}")
+print(f"  New Polished: {replayed['polished']}")
